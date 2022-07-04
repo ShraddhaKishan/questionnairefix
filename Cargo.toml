@@ -1,0 +1,21 @@
+[package]
+name = "deser"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"], default-features = false }
+serde_json = "1.0"
+actix = "0.13"
+deltalake = { git = "https://github.com/delta-io/delta-rs", rev = "7633fd6b38e8eb846acb4c6075176055dff82b24" }
+parquet = { git = "https://github.com/softwareartistry/arrow-rs", features = [
+    "arrow",
+    "base64",
+    "snap",
+    "cli",
+], default-features = false }
+redis = { version = "0.21", features = ["tokio-comp"] }
+itertools = "0.10.3"
+futures = "0.3.21"
