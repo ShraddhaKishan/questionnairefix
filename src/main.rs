@@ -223,7 +223,14 @@ async fn main() {
     let parsed = fetch_data()
         .await
         .into_iter()
-        .map(|row| from_value::<QuestionnaireResponse>(row).unwrap())
+        .filter_map(|row| match from_value::<QuestionnaireResponse>(row.clone()) {
+            Ok(q) => Some(q),
+            Err(e) => {
+                println!("Error: {:?}", e);
+                println!("Value: {:?}", row);
+                None
+            }
+        })
         .collect_vec();
 
     println!("ALL DONE\n{:?}", parsed);
