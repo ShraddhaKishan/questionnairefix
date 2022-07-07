@@ -124,7 +124,14 @@ async fn prepare_files(
 }
 
 async fn get_file(file_path: String, filters: &[DataFilter<String>]) -> Vec<Value> {
-    let file = std::fs::File::open(file_path).unwrap();
+    println!("Reading: {}", file_path);
+    let file = match std::fs::File::open(file_path.as_str()) {
+        Ok(f) => f,
+        Err(_) => {
+            println!("Failed to read: {}", file_path);
+            panic!()
+        }
+    };
 
     let reader = SerializedFileReader::new(file).unwrap();
     let metadata = reader.metadata();
@@ -190,7 +197,7 @@ async fn get_file(file_path: String, filters: &[DataFilter<String>]) -> Vec<Valu
 
 async fn fetch_data() -> Vec<Value> {
     let base_path = "/mnt/wiise-etl/datalake/integrationarchive";
-    let db_name = "integrationarchivetuftsecw";
+    let db_name = "integrationarchivecirclehealthcerner";
     let resource_name = "questionnaireresponse";
 
     let table_path = Path::new(base_path)
@@ -200,7 +207,7 @@ async fn fetch_data() -> Vec<Value> {
         .unwrap()
         .to_string();
 
-    let patient_id = "abdc6e84-e42c-52f4-9141-16edc6c640b3".to_string();
+    let patient_id = "00020e70-8291-57c6-baac-f2922be7d930".to_string();
 
     let filters = vec![DataFilter {
         field: "yy__patient_id".to_string(),
@@ -209,11 +216,13 @@ async fn fetch_data() -> Vec<Value> {
 
     let files = prepare_files(table_path.as_str(), db_name, resource_name, &filters).await;
 
+    println!("reading files started");
     let futures = files
         .into_iter()
         .map(|file| get_file(file.clone(), &filters));
 
     let results = futures::future::join_all(futures).await;
+    println!("reading files finished");
 
     results.into_iter().flatten().collect_vec()
 }
@@ -223,14 +232,16 @@ async fn main() {
     let parsed = fetch_data()
         .await
         .into_iter()
-        .filter_map(|row| match from_value::<QuestionnaireResponse>(row.clone()) {
-            Ok(q) => Some(q),
-            Err(e) => {
-                println!("Error: {:?}", e);
-                println!("Value: {:?}", row);
-                None
-            }
-        })
+        .filter_map(
+            |row| match from_value::<QuestionnaireResponse>(row.clone()) {
+                Ok(q) => Some(q),
+                Err(e) => {
+                    println!("Error: {:?}", e);
+                    println!("Value: {:?}", row);
+                    None
+                }
+            },
+        )
         .collect_vec();
 
     println!("ALL DONE\n{:?}", parsed);
