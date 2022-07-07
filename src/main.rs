@@ -127,9 +127,10 @@ async fn get_file(file_path: String, filters: &[DataFilter<String>]) -> Vec<Valu
     println!("Reading: {}", file_path);
     let file = match std::fs::File::open(file_path.as_str()) {
         Ok(f) => f,
-        Err(_) => {
+        Err(e) => {
             println!("Failed to read: {}", file_path);
-            panic!()
+            println!("Error: {}", e);
+            return vec![];
         }
     };
 
