@@ -12,6 +12,10 @@ use serde::{Deserialize, Serialize};
 use serde_json::{from_value, Value};
 use std::{collections::HashMap, path::Path};
 
+const PATIENT_ID: &str = "0f06d23e-bb59-5ef5-8089-d3f5eed44146";
+const SYSTEM: &str = "tuftscentricity";
+const RESOURCE: &str = "questionnaireresponse";
+
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(untagged)]
 enum Number {
@@ -28,8 +32,6 @@ enum JsonType<'a> {
     Object(HashMap<&'a str, Box<JsonType<'a>>>),
     Array(Vec<Box<JsonType<'a>>>),
 }
-
-// type JSON<'a> = HashMap<&'a str, JsonType<'a>>;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum FilterValue<T> {
@@ -98,7 +100,11 @@ async fn prepare_files(
 ) -> Vec<String> {
     let partition_columns =
         pull(format!("{}/{}/partition_columns", db_name, resource_name).as_str()).await;
+
+    println!("Key = {}/{}/partition_columns", db_name, resource_name);
+    println!("Partition columns: {:?}", partition_columns);
     let all_files = pull(format!("{}/{}/files", db_name, resource_name).as_str()).await;
+    println!("All files: {:?}", all_files);
 
     let partition_column = partition_columns.first().unwrap();
 
@@ -198,24 +204,23 @@ async fn get_file(file_path: String, filters: &[DataFilter<String>]) -> Vec<Valu
 
 async fn fetch_data() -> Vec<Value> {
     let base_path = "/mnt/wiise-etl/datalake/integrationarchive";
-    let db_name = "integrationarchivecirclehealthcerner";
-    let resource_name = "questionnaireresponse";
+    let db_name = format!("integrationarchive{}", SYSTEM);
 
     let table_path = Path::new(base_path)
-        .join(db_name)
-        .join(resource_name)
+        .join(db_name.as_str())
+        .join(RESOURCE)
         .to_str()
         .unwrap()
         .to_string();
 
-    let patient_id = "00020e70-8291-57c6-baac-f2922be7d930".to_string();
+    let patient_id = PATIENT_ID.to_string();
 
     let filters = vec![DataFilter {
         field: "yy__patient_id".to_string(),
         value: FilterValue::Equal(patient_id.clone()),
     }];
 
-    let files = prepare_files(table_path.as_str(), db_name, resource_name, &filters).await;
+    let files = prepare_files(table_path.as_str(), db_name.as_str(), RESOURCE, &filters).await;
 
     println!("reading files started");
     let futures = files
