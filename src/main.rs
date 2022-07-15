@@ -126,6 +126,15 @@ async fn prepare_files(
             .collect_vec()
     } else {
         all_files
+            .into_iter()
+            .map(|file| {
+                Path::new(&table_path)
+                    .join(file)
+                    .to_str()
+                    .unwrap()
+                    .to_string()
+            })
+            .collect_vec()
     }
 }
 
