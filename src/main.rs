@@ -106,27 +106,27 @@ async fn prepare_files(
     let all_files = pull(format!("{}/{}/files", db_name, resource_name).as_str()).await;
     println!("All files: {:?}", all_files);
 
-    let partition_column = partition_columns.first().unwrap();
+    if let Some(partition_column) = partition_columns.first() {
+        let partition_filter = filters
+            .iter()
+            .find(|filter| filter.field.eq(partition_column))
+            .unwrap();
 
-    let partition_filter = filters
-        .iter()
-        .find(|filter| filter.field.eq(partition_column))
-        .unwrap();
+        let raw_files = apply_partition_filter(all_files, partition_filter).await;
 
-    let raw_files = apply_partition_filter(all_files, partition_filter).await;
-
-    let files = raw_files
-        .into_iter()
-        .map(|file| {
-            Path::new(&table_path)
-                .join(file)
-                .to_str()
-                .unwrap()
-                .to_string()
-        })
-        .collect_vec();
-
-    files
+        raw_files
+            .into_iter()
+            .map(|file| {
+                Path::new(&table_path)
+                    .join(file)
+                    .to_str()
+                    .unwrap()
+                    .to_string()
+            })
+            .collect_vec()
+    } else {
+        all_files
+    }
 }
 
 async fn get_file(file_path: String, filters: &[DataFilter<String>]) -> Vec<Value> {
