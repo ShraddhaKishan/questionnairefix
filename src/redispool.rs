@@ -25,9 +25,9 @@ async fn get_using_fred() {
     let conn = get_pool().await;
     match conn
         // THis is the right type of returned value
-        .mget::<Vec<Option<String>>, Vec<&str>>(vec![
-            "integrationarchivetuftsecw/medicationstatement/files",
-            "thiskeydoesnotexist",
+        .mget::<Vec<Option<String>>, Vec<String>>(vec![
+            "integrationarchivetuftsecw/medicationstatement/files".to_string(),
+            "thiskeydoesnotexist".to_string(),
         ])
         .await
     {
@@ -48,6 +48,6 @@ fn get_using_redis() {
 }
 
 pub async fn redis_driver() {
-    get_using_fred().await;
     get_using_redis();
+    get_using_fred().await;
 }
