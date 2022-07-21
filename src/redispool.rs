@@ -38,9 +38,9 @@ async fn get_using_fred() {
 
 fn get_using_redis() {
     let mut conn = get_connection();
-    match conn.get::<Vec<&str>, Vec<Option<String>>>(vec![
-        "integrationarchivetuftsecw/medicationstatement/files",
-        "thiskeydoesnotexist",
+    match conn.get::<Vec<String>, Vec<Option<String>>>(vec![
+        "integrationarchivetuftsecw/medicationstatement/files".to_string(),
+        "thiskeydoesnotexist".to_string(),
     ]) {
         Ok(vec) => eprintln!("Just trying to see what the output is with MGET: {:?}", vec),
         Err(e) => eprintln!("Some error from actor: {:?}", e),
