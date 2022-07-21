@@ -19,3 +19,5 @@ parquet = { git = "https://github.com/softwareartistry/arrow-rs", features = [
 redis = { version = "0.21", features = ["tokio-comp"] }
 itertools = "0.10.3"
 futures = "0.3.21"
+
+fred = "5.1.0"

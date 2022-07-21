@@ -1,4 +1,7 @@
+#![allow(warnings)]
+
 mod model;
+mod redispool;
 
 use itertools::Itertools;
 use model::QuestionnaireResponse;
@@ -8,6 +11,7 @@ use parquet::{
     schema::types::Type,
 };
 use redis::Commands;
+use redispool::redis_driver;
 use serde::{Deserialize, Serialize};
 use serde_json::{from_value, Value};
 use std::{collections::HashMap, path::Path};
@@ -242,8 +246,7 @@ async fn fetch_data() -> Vec<Value> {
     results.into_iter().flatten().collect_vec()
 }
 
-#[actix::main]
-async fn main() {
+async fn driver() {
     let parsed = fetch_data()
         .await
         .into_iter()
@@ -260,4 +263,9 @@ async fn main() {
         .collect_vec();
 
     println!("ALL DONE\n{:?}", parsed);
+}
+
+#[actix::main]
+async fn main() {
+    redis_driver().await
 }
